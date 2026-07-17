@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.venv/
+
+# Ruff
+.ruff_cache/
+
+# pytest
+.pytest_cache/
+
+# VS Code
+.vscode/
+
+# CatBoost
+catboost_info/
