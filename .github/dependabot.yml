@@ -1,8 +1,16 @@
 version: 2
 
+multi-ecosystem-groups:
+  dependencies:
+    schedule:
+      interval: weekly
+
 updates:
   - package-ecosystem: uv
     directory: /
+    patterns:
+      - "*"
+    multi-ecosystem-group: dependencies
     schedule:
       interval: weekly
     groups:
@@ -13,5 +21,13 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
+    patterns:
+      - "*"
+    multi-ecosystem-group: dependencies
     schedule:
       interval: weekly
+    groups:
+      actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
