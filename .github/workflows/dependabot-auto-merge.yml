@@ -1,0 +1,40 @@
+name: Dependabot security auto-merge
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  auto-merge:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # Questo workflow usa soltanto metadati: non esegue codice della PR.
+      - name: Verify Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Require branch protection and enable auto-merge
+        if: >-
+          steps.metadata.outputs.package-ecosystem == 'uv' &&
+          steps.metadata.outputs.dependency-group == 'python-security'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          gh api "repos/$GH_REPO/branches/main" > "$RUNNER_TEMP/main-protection.json"
+          jq -e '.protected == true and ((.protection.required_status_checks.contexts // []) | index("Checks") != null)' "$RUNNER_TEMP/main-protection.json"
+          gh pr merge "$PR_URL" --auto --squash --match-head-commit "$PR_SHA"
